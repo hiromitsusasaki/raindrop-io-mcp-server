@@ -1,4 +1,5 @@
 # Raindrop.io MCP Server
+[![smithery badge](https://smithery.ai/badge/@hiromitsusasaki/raindrop-io-mcp-server)](https://smithery.ai/server/@hiromitsusasaki/raindrop-io-mcp-server)
 
 An integration that allows LLMs to interact with Raindrop.io bookmarks using the Model Context Protocol (MCP).
 
@@ -14,6 +15,16 @@ An integration that allows LLMs to interact with Raindrop.io bookmarks using the
 - Raindrop.io account and API token
 
 ## Setup
+
+### Installing via Smithery
+
+To install Raindrop.io Integration for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@hiromitsusasaki/raindrop-io-mcp-server):
+
+```bash
+npx -y @smithery/cli install @hiromitsusasaki/raindrop-io-mcp-server --client claude
+```
+
+### Manual Installation
 
 1. Clone the repository:
 ```bash
