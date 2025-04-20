@@ -1,4 +1,4 @@
-name: Test
+name: CI
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  test-and-lint:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,8 +22,11 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
+    - name: Run ESLint
+      run: npm run lint
+
+    - name: Check formatting with Prettier
+      run: npx prettier --check "src/**/*.{ts,tsx,js,jsx}"
+
     - name: Run tests
       run: npm test
-
-    - name: Run linter
-      run: npm run lint
