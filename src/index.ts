@@ -22,7 +22,7 @@ const server = new Server(
     capabilities: {
       tools: {},
     },
-  }
+  },
 );
 
 // ツール一覧の定義
@@ -58,7 +58,7 @@ server.setRequestHandler(
           content: [
             {
               type: "text",
-              text: `Bookmark created successfully: ${bookmark.link}`,
+              text: `Bookmark created successfully: ${bookmark.item.link}`,
             },
           ],
         };
@@ -88,7 +88,7 @@ URL: ${item.link}
 Tags: ${item.tags?.length ? item.tags.join(", ") : "No tags"}
 Created: ${new Date(item.created).toLocaleString()}
 Last Updated: ${new Date(item.lastUpdate).toLocaleString()}
----`
+---`,
           )
           .join("\n");
 
@@ -118,7 +118,7 @@ ID: ${item._id}
 Count: ${item.count} bookmarks
 Parent: ${item.parent?._id || "None"}
 Created: ${new Date(item.created).toLocaleString()}
----`
+---`,
           )
           .join("\n");
 
@@ -141,12 +141,12 @@ Created: ${new Date(item.created).toLocaleString()}
         throw new Error(
           `Invalid arguments: ${error.errors
             .map((e) => `${e.path.join(".")}: ${e.message}`)
-            .join(", ")}`
+            .join(", ")}`,
         );
       }
       throw error;
     }
-  }
+  },
 );
 
 // サーバー起動
