@@ -7,39 +7,11 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import dotenv from "dotenv";
 import { z } from "zod";
+import { RaindropAPI } from "./lib/raindrop-api.js";
+import { tools } from "./lib/tools.js";
+import { CreateBookmarkSchema, SearchBookmarksSchema } from "./types/index.js";
 
 dotenv.config();
-
-const RAINDROP_API_BASE = "https://api.raindrop.io/rest/v1";
-
-// バリデーションスキーマ
-const CreateBookmarkSchema = z.object({
-  url: z.string().url(),
-  title: z.string().optional(),
-  tags: z.array(z.string()).optional(),
-  collection: z.number().optional(),
-});
-
-const SearchBookmarksSchema = z.object({
-  query: z.string(),
-  tags: z.array(z.string()).optional(),
-  page: z.number().min(0).optional(),
-  perpage: z.number().min(1).max(50).optional(),
-  sort: z
-    .enum([
-      "-created",
-      "created",
-      "-last_update",
-      "last_update",
-      "-title",
-      "title",
-      "-domain",
-      "domain",
-    ])
-    .optional(),
-  collection: z.number().optional(),
-  word: z.boolean().optional(),
-});
 
 const server = new Server(
   {
@@ -53,125 +25,9 @@ const server = new Server(
   }
 );
 
-// APIリクエストヘルパー
-async function makeRaindropRequest(
-  endpoint: string,
-  method: string = "GET",
-  body?: any
-) {
-  const token = process.env.RAINDROP_TOKEN;
-  if (!token) {
-    throw new Error("RAINDROP_TOKEN is not set");
-  }
-
-  const response = await fetch(`${RAINDROP_API_BASE}${endpoint}`, {
-    method,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-
-  if (!response.ok) {
-    throw new Error(`Raindrop API error: ${response.statusText}`);
-  }
-
-  return response.json();
-}
-
 // ツール一覧の定義
 server.setRequestHandler(ListToolsRequestSchema, async () => {
-  return {
-    tools: [
-      {
-        name: "create-bookmark",
-        description: "Create a new bookmark in Raindrop.io",
-        inputSchema: {
-          type: "object",
-          properties: {
-            url: {
-              type: "string",
-              description: "URL to bookmark",
-            },
-            title: {
-              type: "string",
-              description: "Title for the bookmark (optional)",
-            },
-            tags: {
-              type: "array",
-              items: { type: "string" },
-              description: "Tags for the bookmark (optional)",
-            },
-            collection: {
-              type: "number",
-              description: "Collection ID to save to (optional)",
-            },
-          },
-          required: ["url"],
-        },
-      },
-      {
-        name: "search-bookmarks",
-        description: "Search through your Raindrop.io bookmarks",
-        inputSchema: {
-          type: "object",
-          properties: {
-            query: {
-              type: "string",
-              description: "Search query",
-            },
-            tags: {
-              type: "array",
-              items: { type: "string" },
-              description: "Filter by tags (optional)",
-            },
-            page: {
-              type: "number",
-              description: "Page number (0-based, optional)",
-            },
-            perpage: {
-              type: "number",
-              description: "Items per page (1-50, optional)",
-            },
-            sort: {
-              type: "string",
-              enum: [
-                "-created",
-                "created",
-                "-last_update",
-                "last_update",
-                "-title",
-                "title",
-                "-domain",
-                "domain",
-              ],
-              description:
-                "Sort order (optional). Prefix with - for descending order.",
-            },
-            collection: {
-              type: "number",
-              description:
-                "Collection ID to search in (optional, 0 for all collections)",
-            },
-            word: {
-              type: "boolean",
-              description: "Whether to match exact words only (optional)",
-            },
-          },
-          required: ["query"],
-        },
-      },
-      {
-        name: "list-collections",
-        description: "List all your Raindrop.io collections",
-        inputSchema: {
-          type: "object",
-          properties: {},
-        },
-      },
-    ],
-  };
+  return { tools };
 });
 
 // ツール実行のハンドリング
@@ -179,17 +35,23 @@ server.setRequestHandler(
   CallToolRequestSchema,
   async (request: CallToolRequest) => {
     const { name, arguments: args } = request.params;
+    const token = process.env.RAINDROP_TOKEN;
+    if (!token) {
+      throw new Error("RAINDROP_TOKEN is not set");
+    }
+
+    const api = new RaindropAPI(token);
 
     try {
       if (name === "create-bookmark") {
         const { url, title, tags, collection } =
           CreateBookmarkSchema.parse(args);
 
-        const bookmark = await makeRaindropRequest("/raindrop", "POST", {
+        const bookmark = await api.createBookmark({
           link: url,
           title,
           tags,
-          collection: collection || { $id: 0 },
+          collection: { $id: collection || 0 },
         });
 
         return {
@@ -216,13 +78,11 @@ server.setRequestHandler(
         });
 
         const collectionId = collection ?? 0;
-        const results = await makeRaindropRequest(
-          `/raindrops/${collectionId}?${searchParams}`
-        );
+        const results = await api.searchBookmarks(collectionId, searchParams);
 
         const formattedResults = results.items
           .map(
-            (item: any) => `
+            (item) => `
 Title: ${item.title}
 URL: ${item.link}
 Tags: ${item.tags?.length ? item.tags.join(", ") : "No tags"}
@@ -248,11 +108,11 @@ Last Updated: ${new Date(item.lastUpdate).toLocaleString()}
       }
 
       if (name === "list-collections") {
-        const collections = await makeRaindropRequest("/collections");
+        const collections = await api.listCollections();
 
         const formattedCollections = collections.items
           .map(
-            (item: any) => `
+            (item) => `
 Name: ${item.title}
 ID: ${item._id}
 Count: ${item.count} bookmarks
