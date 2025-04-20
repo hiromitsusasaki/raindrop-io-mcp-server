@@ -38,7 +38,7 @@ describe("RaindropAPI", () => {
             title: "Example",
             tags: ["test"],
           }),
-        }
+        },
       );
       expect(result).toEqual({ item: { _id: 123 } });
     });
@@ -55,7 +55,7 @@ describe("RaindropAPI", () => {
           link: "https://example.com",
           title: "Example",
           tags: ["test"],
-        })
+        }),
       ).rejects.toThrow("Raindrop API error: Invalid token");
     });
   });
@@ -81,7 +81,7 @@ describe("RaindropAPI", () => {
 
       const result = await api.searchBookmarks(
         0,
-        new URLSearchParams({ search: "test" })
+        new URLSearchParams({ search: "test" }),
       );
 
       expect(mockFetch).toHaveBeenCalledWith(
@@ -92,7 +92,7 @@ describe("RaindropAPI", () => {
             "Content-Type": "application/json",
             Authorization: `Bearer test-token`,
           },
-        }
+        },
       );
       expect(result).toEqual({
         items: [
@@ -136,7 +136,7 @@ describe("RaindropAPI", () => {
             "Content-Type": "application/json",
             Authorization: `Bearer test-token`,
           },
-        }
+        },
       );
       expect(result).toEqual({
         items: [

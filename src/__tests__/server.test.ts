@@ -8,7 +8,7 @@ const mockFetch = jest.fn().mockImplementation(() =>
   Promise.resolve({
     ok: true,
     json: () => Promise.resolve({}),
-  })
+  }),
 );
 global.fetch = mockFetch as unknown as typeof fetch;
 
@@ -48,7 +48,7 @@ describe("Tool Handlers", () => {
           ok: true,
           json: () =>
             Promise.resolve({ item: { link: "https://example.com" } }),
-        })
+        }),
       );
 
       const result = await handler({
@@ -81,7 +81,7 @@ describe("Tool Handlers", () => {
               url: "invalid-url",
             },
           },
-        })
+        }),
       ).rejects.toThrow("Invalid");
     });
   });
@@ -122,7 +122,7 @@ URL: ${item.link}
 Tags: ${item.tags?.length ? item.tags.join(", ") : "No tags"}
 Created: ${new Date(item.created).toLocaleString()}
 Last Updated: ${new Date(item.lastUpdate).toLocaleString()}
----`
+---`,
                     )
                     .join("\n")}`
                 : "No bookmarks found matching your search.",
@@ -149,7 +149,7 @@ Last Updated: ${new Date(item.lastUpdate).toLocaleString()}
         Promise.resolve({
           ok: true,
           json: () => Promise.resolve(mockSearchResults),
-        })
+        }),
       );
 
       const result = await handler({
@@ -177,7 +177,7 @@ Last Updated: ${new Date(item.lastUpdate).toLocaleString()}
         Promise.resolve({
           ok: true,
           json: () => Promise.resolve(paginatedResults),
-        })
+        }),
       );
 
       const result = await handler({
@@ -201,7 +201,7 @@ Last Updated: ${new Date(item.lastUpdate).toLocaleString()}
         Promise.resolve({
           ok: true,
           json: () => Promise.resolve(mockSearchResults),
-        })
+        }),
       );
 
       await handler({
@@ -217,7 +217,7 @@ Last Updated: ${new Date(item.lastUpdate).toLocaleString()}
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining("sort=-created"),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
@@ -226,7 +226,7 @@ Last Updated: ${new Date(item.lastUpdate).toLocaleString()}
         Promise.resolve({
           ok: true,
           json: () => Promise.resolve(mockSearchResults),
-        })
+        }),
       );
 
       await handler({
@@ -242,7 +242,7 @@ Last Updated: ${new Date(item.lastUpdate).toLocaleString()}
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining("tags=example%2Ctest"),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
   });
@@ -268,7 +268,7 @@ ID: ${item._id}
 Count: ${item.count} bookmarks
 Parent: ${item.parent?._id || "None"}
 Created: ${new Date(item.created).toLocaleString()}
----`
+---`,
                     )
                     .join("\n")}`
                 : "No collections found.",
@@ -293,7 +293,7 @@ Created: ${new Date(item.created).toLocaleString()}
         Promise.resolve({
           ok: true,
           json: () => Promise.resolve(mockCollections),
-        })
+        }),
       );
 
       const result = await handler({
@@ -313,7 +313,7 @@ Created: ${new Date(item.created).toLocaleString()}
         Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ items: [] }),
-        })
+        }),
       );
 
       const result = await handler({
