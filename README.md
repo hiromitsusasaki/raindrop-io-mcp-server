@@ -3,6 +3,10 @@
 
 An integration that allows LLMs to interact with Raindrop.io bookmarks using the Model Context Protocol (MCP).
 
+<a href="https://glama.ai/mcp/servers/@hiromitsusasaki/raindrop-io-mcp-server">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@hiromitsusasaki/raindrop-io-mcp-server/badge" alt="Raindrop.io Server MCP server" />
+</a>
+
 ## Features
 
 - Create bookmarks
@@ -112,7 +116,6 @@ This is an open source MCP server that anyone can use and contribute to. The pro
 ## Contributing
 
 Contributions are welcome! Feel free to submit issues, feature requests, or pull requests to help improve this project.
-
 
 ## Related Links
 
