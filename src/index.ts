@@ -9,7 +9,14 @@ import dotenv from "dotenv";
 import { z } from "zod";
 import { RaindropAPI } from "./lib/raindrop-api.js";
 import { tools } from "./lib/tools.js";
-import { CreateBookmarkSchema, SearchBookmarksSchema } from "./types/index.js";
+import {
+  CreateBookmarkSchema,
+  SearchBookmarksSchema,
+  CreateHighlightSchema,
+  ListHighlightsSchema,
+  UpdateHighlightSchema,
+  DeleteHighlightSchema,
+} from "./types/index.js";
 
 dotenv.config();
 
@@ -130,6 +137,107 @@ Created: ${new Date(item.created).toLocaleString()}
                 collections.items.length > 0
                   ? `Found ${collections.items.length} collections:\n${formattedCollections}`
                   : "No collections found.",
+            },
+          ],
+        };
+      }
+
+      if (name === "create-highlight") {
+        const { raindropId, text, note, color, tags } =
+          CreateHighlightSchema.parse(args);
+
+        const highlight = await api.createHighlight({
+          raindrop: raindropId,
+          text,
+          note,
+          color,
+          tags,
+        });
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Highlight created successfully with ID: ${highlight.item._id}`,
+            },
+          ],
+        };
+      }
+
+      if (name === "list-highlights") {
+        const { raindropId, page, perpage } = ListHighlightsSchema.parse(args);
+
+        const searchParams = new URLSearchParams({
+          ...(raindropId !== undefined && { raindrop: raindropId.toString() }),
+          ...(page !== undefined && { page: page.toString() }),
+          ...(perpage !== undefined && { perpage: perpage.toString() }),
+        });
+
+        const results = await api.listHighlights(searchParams);
+
+        const formattedResults = results.items
+          .map(
+            (item) => `
+Highlight ID: ${item._id}
+Text: ${item.text}
+Note: ${item.note || "No note"}
+Color: ${item.color || "Default"}
+Tags: ${item.tags?.length ? item.tags.join(", ") : "No tags"}
+Bookmark: ${item.raindrop.title} (${item.raindrop.link})
+Created: ${new Date(item.created).toLocaleString()}
+Last Updated: ${new Date(item.lastUpdate).toLocaleString()}
+---`,
+          )
+          .join("\n");
+
+        return {
+          content: [
+            {
+              type: "text",
+              text:
+                results.items.length > 0
+                  ? `Found ${results.count} total highlights (showing ${
+                      results.items.length
+                    } on page ${page ?? 0 + 1}):\n${formattedResults}`
+                  : "No highlights found.",
+            },
+          ],
+        };
+      }
+
+      if (name === "update-highlight") {
+        const { highlightId, text, note, color, tags } =
+          UpdateHighlightSchema.parse(args);
+
+        const highlight = await api.updateHighlight(highlightId, {
+          text,
+          note,
+          color,
+          tags,
+        });
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Highlight updated successfully: ${highlight.item._id}`,
+            },
+          ],
+        };
+      }
+
+      if (name === "delete-highlight") {
+        const { highlightId } = DeleteHighlightSchema.parse(args);
+
+        const result = await api.deleteHighlight(highlightId);
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: result.result
+                ? `Highlight ${highlightId} deleted successfully`
+                : `Failed to delete highlight ${highlightId}`,
             },
           ],
         };

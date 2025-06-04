@@ -87,4 +87,104 @@ export const tools: Tool[] = [
       properties: {},
     },
   },
+  {
+    name: "create-highlight",
+    description: "Create a new highlight for a bookmark in Raindrop.io",
+    inputSchema: {
+      type: "object",
+      properties: {
+        raindropId: {
+          type: "number",
+          description: "ID of the bookmark/raindrop to highlight",
+        },
+        text: {
+          type: "string",
+          description: "The text to highlight",
+        },
+        note: {
+          type: "string",
+          description: "Optional note for the highlight",
+        },
+        color: {
+          type: "string",
+          description:
+            "Color of the highlight (e.g., yellow, blue, green, red)",
+        },
+        tags: {
+          type: "array",
+          items: { type: "string" },
+          description: "Tags for the highlight (optional)",
+        },
+      },
+      required: ["raindropId", "text"],
+    },
+  },
+  {
+    name: "list-highlights",
+    description: "List highlights from Raindrop.io",
+    inputSchema: {
+      type: "object",
+      properties: {
+        raindropId: {
+          type: "number",
+          description:
+            "ID of specific bookmark to get highlights from (optional)",
+        },
+        page: {
+          type: "number",
+          description: "Page number (0-based, optional)",
+        },
+        perpage: {
+          type: "number",
+          description: "Items per page (1-50, optional)",
+        },
+      },
+    },
+  },
+  {
+    name: "update-highlight",
+    description: "Update an existing highlight in Raindrop.io",
+    inputSchema: {
+      type: "object",
+      properties: {
+        highlightId: {
+          type: "string",
+          description: "ID of the highlight to update",
+        },
+        text: {
+          type: "string",
+          description: "Updated text for the highlight",
+        },
+        note: {
+          type: "string",
+          description: "Updated note for the highlight",
+        },
+        color: {
+          type: "string",
+          description:
+            "Updated color of the highlight (e.g., yellow, blue, green, red)",
+        },
+        tags: {
+          type: "array",
+          items: { type: "string" },
+          description: "Updated tags for the highlight",
+        },
+      },
+      required: ["highlightId"],
+    },
+  },
+  {
+    name: "delete-highlight",
+    description: "Delete a highlight from Raindrop.io",
+    inputSchema: {
+      type: "object",
+      properties: {
+        highlightId: {
+          type: "string",
+          description: "ID of the highlight to delete",
+        },
+      },
+      required: ["highlightId"],
+    },
+  },
 ];

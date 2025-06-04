@@ -150,4 +150,159 @@ describe("RaindropAPI", () => {
       });
     });
   });
+
+  describe("createHighlight", () => {
+    it("creates a highlight", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ item: { _id: "highlight123" } }),
+      } as Response);
+
+      const result = await api.createHighlight({
+        raindrop: 123,
+        text: "Important text",
+        note: "This is important",
+        color: "yellow",
+        tags: ["important"],
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "https://api.raindrop.io/rest/v1/highlight",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer test-token`,
+          },
+          body: JSON.stringify({
+            raindrop: 123,
+            text: "Important text",
+            note: "This is important",
+            color: "yellow",
+            tags: ["important"],
+          }),
+        },
+      );
+      expect(result).toEqual({ item: { _id: "highlight123" } });
+    });
+  });
+
+  describe("listHighlights", () => {
+    it("lists highlights", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            items: [
+              {
+                _id: "highlight123",
+                text: "Important text",
+                note: "This is important",
+                color: "yellow",
+                tags: ["important"],
+                created: "2024-03-21T00:00:00Z",
+                lastUpdate: "2024-03-21T00:00:00Z",
+                raindrop: {
+                  $id: 123,
+                  title: "Example",
+                  link: "https://example.com",
+                },
+              },
+            ],
+            count: 1,
+          }),
+      } as Response);
+
+      const result = await api.listHighlights(
+        new URLSearchParams({ raindrop: "123" }),
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "https://api.raindrop.io/rest/v1/highlights?raindrop=123",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer test-token`,
+          },
+        },
+      );
+      expect(result).toEqual({
+        items: [
+          {
+            _id: "highlight123",
+            text: "Important text",
+            note: "This is important",
+            color: "yellow",
+            tags: ["important"],
+            created: "2024-03-21T00:00:00Z",
+            lastUpdate: "2024-03-21T00:00:00Z",
+            raindrop: {
+              $id: 123,
+              title: "Example",
+              link: "https://example.com",
+            },
+          },
+        ],
+        count: 1,
+      });
+    });
+  });
+
+  describe("updateHighlight", () => {
+    it("updates a highlight", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ item: { _id: "highlight123" } }),
+      } as Response);
+
+      const result = await api.updateHighlight("highlight123", {
+        text: "Updated text",
+        note: "Updated note",
+        color: "blue",
+        tags: ["updated"],
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "https://api.raindrop.io/rest/v1/highlight/highlight123",
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer test-token`,
+          },
+          body: JSON.stringify({
+            text: "Updated text",
+            note: "Updated note",
+            color: "blue",
+            tags: ["updated"],
+          }),
+        },
+      );
+      expect(result).toEqual({ item: { _id: "highlight123" } });
+    });
+  });
+
+  describe("deleteHighlight", () => {
+    it("deletes a highlight", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ result: true }),
+      } as Response);
+
+      const result = await api.deleteHighlight("highlight123");
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "https://api.raindrop.io/rest/v1/highlight/highlight123",
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer test-token`,
+          },
+        },
+      );
+      expect(result).toEqual({ result: true });
+    });
+  });
 });

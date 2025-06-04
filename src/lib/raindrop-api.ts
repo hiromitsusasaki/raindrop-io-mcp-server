@@ -1,4 +1,8 @@
-import { CollectionsResponse, SearchResponse } from "../types/index.js";
+import {
+  CollectionsResponse,
+  SearchResponse,
+  HighlightsResponse,
+} from "../types/index.js";
 
 const RAINDROP_API_BASE = "https://api.raindrop.io/rest/v1";
 
@@ -54,5 +58,50 @@ export class RaindropAPI {
 
   async listCollections(): Promise<CollectionsResponse> {
     return this.makeRequest<CollectionsResponse>("/collections");
+  }
+
+  async createHighlight(params: {
+    raindrop: number;
+    text: string;
+    note?: string;
+    color?: string;
+    tags?: string[];
+  }) {
+    return this.makeRequest<{ item: { _id: string } }>(
+      "/highlight",
+      "POST",
+      params,
+    );
+  }
+
+  async listHighlights(
+    searchParams: URLSearchParams,
+  ): Promise<HighlightsResponse> {
+    return this.makeRequest<HighlightsResponse>(
+      `/highlights?${searchParams.toString()}`,
+    );
+  }
+
+  async updateHighlight(
+    highlightId: string,
+    params: {
+      text?: string;
+      note?: string;
+      color?: string;
+      tags?: string[];
+    },
+  ) {
+    return this.makeRequest<{ item: { _id: string } }>(
+      `/highlight/${highlightId}`,
+      "PUT",
+      params,
+    );
+  }
+
+  async deleteHighlight(highlightId: string) {
+    return this.makeRequest<{ result: boolean }>(
+      `/highlight/${highlightId}`,
+      "DELETE",
+    );
   }
 }

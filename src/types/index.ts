@@ -58,3 +58,55 @@ export interface SearchResponse {
 export interface CollectionsResponse {
   items: Collection[];
 }
+
+// Highlight types and schemas
+export const CreateHighlightSchema = z.object({
+  raindropId: z.number(),
+  text: z.string(),
+  note: z.string().optional(),
+  color: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+});
+
+export const ListHighlightsSchema = z.object({
+  raindropId: z.number().optional(),
+  page: z.number().min(0).optional(),
+  perpage: z.number().min(1).max(50).optional(),
+});
+
+export const UpdateHighlightSchema = z.object({
+  highlightId: z.string(),
+  text: z.string().optional(),
+  note: z.string().optional(),
+  color: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+});
+
+export const DeleteHighlightSchema = z.object({
+  highlightId: z.string(),
+});
+
+export type CreateHighlightParams = z.infer<typeof CreateHighlightSchema>;
+export type ListHighlightsParams = z.infer<typeof ListHighlightsSchema>;
+export type UpdateHighlightParams = z.infer<typeof UpdateHighlightSchema>;
+export type DeleteHighlightParams = z.infer<typeof DeleteHighlightSchema>;
+
+export interface Highlight {
+  _id: string;
+  text: string;
+  note?: string;
+  color?: string;
+  tags?: string[];
+  created: string;
+  lastUpdate: string;
+  raindrop: {
+    $id: number;
+    title: string;
+    link: string;
+  };
+}
+
+export interface HighlightsResponse {
+  items: Highlight[];
+  count: number;
+}
