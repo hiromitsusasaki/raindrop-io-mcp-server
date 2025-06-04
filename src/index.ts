@@ -9,7 +9,13 @@ import dotenv from "dotenv";
 import { z } from "zod";
 import { RaindropAPI } from "./lib/raindrop-api.js";
 import { tools } from "./lib/tools.js";
-import { CreateBookmarkSchema, SearchBookmarksSchema } from "./types/index.js";
+import { 
+  CreateBookmarkSchema, 
+  SearchBookmarksSchema, 
+  ListTagsSchema, 
+  MergeTagsSchema, 
+  DeleteTagSchema 
+} from "./types/index.js";
 
 dotenv.config();
 
@@ -130,6 +136,64 @@ Created: ${new Date(item.created).toLocaleString()}
                 collections.items.length > 0
                   ? `Found ${collections.items.length} collections:\n${formattedCollections}`
                   : "No collections found.",
+            },
+          ],
+        };
+      }
+
+      if (name === "list-tags") {
+        ListTagsSchema.parse(args);
+        const tags = await api.listTags();
+
+        const formattedTags = tags.items
+          .map(
+            (tag) => `
+Name: ${tag.name}
+Usage Count: ${tag.count}
+---`,
+          )
+          .join("\n");
+
+        return {
+          content: [
+            {
+              type: "text",
+              text:
+                tags.items.length > 0
+                  ? `Found ${tags.items.length} tags:\n${formattedTags}`
+                  : "No tags found.",
+            },
+          ],
+        };
+      }
+
+      if (name === "merge-tags") {
+        const { tags, new_name } = MergeTagsSchema.parse(args);
+        const result = await api.mergeTags(tags, new_name);
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: result.result
+                ? `Successfully merged tags [${tags.join(", ")}] into "${new_name}"`
+                : "Failed to merge tags. Please check if the tags exist.",
+            },
+          ],
+        };
+      }
+
+      if (name === "delete-tag") {
+        const { tag } = DeleteTagSchema.parse(args);
+        const result = await api.deleteTag(tag);
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: result.result
+                ? `Successfully deleted tag "${tag}"`
+                : `Failed to delete tag "${tag}". Please check if the tag exists.`,
             },
           ],
         };

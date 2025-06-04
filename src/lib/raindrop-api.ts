@@ -1,4 +1,4 @@
-import { CollectionsResponse, SearchResponse } from "../types/index.js";
+import { CollectionsResponse, SearchResponse, TagsResponse } from "../types/index.js";
 
 const RAINDROP_API_BASE = "https://api.raindrop.io/rest/v1";
 
@@ -54,5 +54,20 @@ export class RaindropAPI {
 
   async listCollections(): Promise<CollectionsResponse> {
     return this.makeRequest<CollectionsResponse>("/collections");
+  }
+
+  async listTags(): Promise<TagsResponse> {
+    return this.makeRequest<TagsResponse>("/tags");
+  }
+
+  async mergeTags(tags: string[], newName: string): Promise<{ result: boolean }> {
+    return this.makeRequest<{ result: boolean }>("/tags", "PUT", {
+      tags,
+      new_name: newName,
+    });
+  }
+
+  async deleteTag(tag: string): Promise<{ result: boolean }> {
+    return this.makeRequest<{ result: boolean }>(`/tags/${encodeURIComponent(tag)}`, "DELETE");
   }
 }

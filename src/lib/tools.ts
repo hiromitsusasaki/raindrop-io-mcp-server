@@ -87,4 +87,46 @@ export const tools: Tool[] = [
       properties: {},
     },
   },
+  {
+    name: "list-tags",
+    description: "List all tags with their usage counts from Raindrop.io",
+    inputSchema: {
+      type: "object",
+      properties: {},
+    },
+  },
+  {
+    name: "merge-tags",
+    description: "Merge multiple tags into a single tag in Raindrop.io",
+    inputSchema: {
+      type: "object",
+      properties: {
+        tags: {
+          type: "array",
+          items: { type: "string" },
+          description: "Array of tag names to merge (minimum 2 tags)",
+          minItems: 2,
+        },
+        new_name: {
+          type: "string",
+          description: "New name for the merged tag",
+        },
+      },
+      required: ["tags", "new_name"],
+    },
+  },
+  {
+    name: "delete-tag",
+    description: "Delete a tag from Raindrop.io (removes it from all bookmarks)",
+    inputSchema: {
+      type: "object",
+      properties: {
+        tag: {
+          type: "string",
+          description: "Name of the tag to delete",
+        },
+      },
+      required: ["tag"],
+    },
+  },
 ];

@@ -1,7 +1,13 @@
 import { describe, expect, it, jest } from "@jest/globals";
 import { CallToolRequest } from "@modelcontextprotocol/sdk/types.js";
 import { RaindropAPI } from "../lib/raindrop-api.js";
-import { CreateBookmarkSchema, SearchBookmarksSchema } from "../types/index.js";
+import { 
+  CreateBookmarkSchema, 
+  SearchBookmarksSchema, 
+  ListTagsSchema, 
+  MergeTagsSchema, 
+  DeleteTagSchema 
+} from "../types/index.js";
 
 // モックのfetch関数
 const mockFetch = jest.fn().mockImplementation(() =>
@@ -325,6 +331,253 @@ Created: ${new Date(item.created).toLocaleString()}
       });
 
       expect(result.content[0].text).toBe("No collections found.");
+    });
+  });
+
+  describe("list-tags", () => {
+    const handler = async (request: CallToolRequest) => {
+      const { name, arguments: args } = request.params;
+      if (name !== "list-tags") throw new Error("Invalid tool");
+
+      ListTagsSchema.parse(args);
+      const tags = await api.listTags();
+
+      return {
+        content: [
+          {
+            type: "text",
+            text:
+              tags.items.length > 0
+                ? `Found ${tags.items.length} tags:\n${tags.items
+                    .map(
+                      (tag) => `
+Name: ${tag.name}
+Usage Count: ${tag.count}
+---`,
+                    )
+                    .join("\n")}`
+                : "No tags found.",
+          },
+        ],
+      };
+    };
+
+    const mockTags = {
+      items: [
+        {
+          _id: "1",
+          name: "test",
+          count: 5,
+        },
+        {
+          _id: "2", 
+          name: "example",
+          count: 3,
+        },
+      ],
+    };
+
+    it("should list all tags with usage counts", async () => {
+      mockFetch.mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockTags),
+        }),
+      );
+
+      const result = await handler({
+        method: "tools/call",
+        params: {
+          name: "list-tags",
+          arguments: {},
+        },
+      });
+
+      expect(result.content[0].text).toContain("Found 2 tags");
+      expect(result.content[0].text).toContain("test");
+      expect(result.content[0].text).toContain("Usage Count: 5");
+    });
+
+    it("should handle empty tags", async () => {
+      mockFetch.mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ items: [] }),
+        }),
+      );
+
+      const result = await handler({
+        method: "tools/call",
+        params: {
+          name: "list-tags",
+          arguments: {},
+        },
+      });
+
+      expect(result.content[0].text).toBe("No tags found.");
+    });
+  });
+
+  describe("merge-tags", () => {
+    const handler = async (request: CallToolRequest) => {
+      const { name, arguments: args } = request.params;
+      if (name !== "merge-tags") throw new Error("Invalid tool");
+
+      const { tags, new_name } = MergeTagsSchema.parse(args);
+      const result = await api.mergeTags(tags, new_name);
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: result.result
+              ? `Successfully merged tags [${tags.join(", ")}] into "${new_name}"`
+              : "Failed to merge tags. Please check if the tags exist.",
+          },
+        ],
+      };
+    };
+
+    it("should merge tags successfully", async () => {
+      mockFetch.mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ result: true }),
+        }),
+      );
+
+      const result = await handler({
+        method: "tools/call",
+        params: {
+          name: "merge-tags",
+          arguments: {
+            tags: ["old-tag1", "old-tag2"],
+            new_name: "merged-tag",
+          },
+        },
+      });
+
+      expect(result.content[0].text).toBe(
+        'Successfully merged tags [old-tag1, old-tag2] into "merged-tag"'
+      );
+    });
+
+    it("should handle merge failure", async () => {
+      mockFetch.mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ result: false }),
+        }),
+      );
+
+      const result = await handler({
+        method: "tools/call",
+        params: {
+          name: "merge-tags",
+          arguments: {
+            tags: ["nonexistent1", "nonexistent2"],
+            new_name: "merged-tag",
+          },
+        },
+      });
+
+      expect(result.content[0].text).toBe(
+        "Failed to merge tags. Please check if the tags exist."
+      );
+    });
+
+    it("should validate minimum tag count", async () => {
+      await expect(
+        handler({
+          method: "tools/call",
+          params: {
+            name: "merge-tags",
+            arguments: {
+              tags: ["single-tag"],
+              new_name: "merged-tag",
+            },
+          },
+        }),
+      ).rejects.toThrow("At least 2 tags are required");
+    });
+  });
+
+  describe("delete-tag", () => {
+    const handler = async (request: CallToolRequest) => {
+      const { name, arguments: args } = request.params;
+      if (name !== "delete-tag") throw new Error("Invalid tool");
+
+      const { tag } = DeleteTagSchema.parse(args);
+      const result = await api.deleteTag(tag);
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: result.result
+              ? `Successfully deleted tag "${tag}"`
+              : `Failed to delete tag "${tag}". Please check if the tag exists.`,
+          },
+        ],
+      };
+    };
+
+    it("should delete tag successfully", async () => {
+      mockFetch.mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ result: true }),
+        }),
+      );
+
+      const result = await handler({
+        method: "tools/call",
+        params: {
+          name: "delete-tag",
+          arguments: {
+            tag: "obsolete-tag",
+          },
+        },
+      });
+
+      expect(result.content[0].text).toBe('Successfully deleted tag "obsolete-tag"');
+    });
+
+    it("should handle delete failure", async () => {
+      mockFetch.mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ result: false }),
+        }),
+      );
+
+      const result = await handler({
+        method: "tools/call",
+        params: {
+          name: "delete-tag",
+          arguments: {
+            tag: "nonexistent-tag",
+          },
+        },
+      });
+
+      expect(result.content[0].text).toBe(
+        'Failed to delete tag "nonexistent-tag". Please check if the tag exists.'
+      );
+    });
+
+    it("should validate required tag parameter", async () => {
+      await expect(
+        handler({
+          method: "tools/call",
+          params: {
+            name: "delete-tag",
+            arguments: {
+              tag: "",
+            },
+          },
+        }),
+      ).rejects.toThrow("Tag name is required");
     });
   });
 });
