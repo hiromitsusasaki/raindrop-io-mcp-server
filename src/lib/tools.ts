@@ -87,4 +87,18 @@ export const tools: Tool[] = [
       properties: {},
     },
   },
+  {
+    name: "get-bookmark",
+    description: "Retrieve detailed information about a specific bookmark by ID",
+    inputSchema: {
+      type: "object",
+      properties: {
+        id: {
+          type: "number",
+          description: "The ID of the bookmark to retrieve",
+        },
+      },
+      required: ["id"],
+    },
+  },
 ];

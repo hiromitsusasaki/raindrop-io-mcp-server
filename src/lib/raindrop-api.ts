@@ -1,4 +1,4 @@
-import { CollectionsResponse, SearchResponse } from "../types/index.js";
+import { BookmarkResponse, CollectionsResponse, SearchResponse } from "../types/index.js";
 
 const RAINDROP_API_BASE = "https://api.raindrop.io/rest/v1";
 
@@ -54,5 +54,9 @@ export class RaindropAPI {
 
   async listCollections(): Promise<CollectionsResponse> {
     return this.makeRequest<CollectionsResponse>("/collections");
+  }
+
+  async getBookmark(id: number): Promise<BookmarkResponse> {
+    return this.makeRequest<BookmarkResponse>(`/raindrop/${id}`);
   }
 }

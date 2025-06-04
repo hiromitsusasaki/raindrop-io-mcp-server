@@ -150,4 +150,62 @@ describe("RaindropAPI", () => {
       });
     });
   });
+
+  describe("getBookmark", () => {
+    it("gets a bookmark by ID", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            item: {
+              _id: 123,
+              title: "Example Bookmark",
+              link: "https://example.com",
+              tags: ["test"],
+              created: "2024-03-21T00:00:00Z",
+              lastUpdate: "2024-03-21T00:00:00Z",
+              excerpt: "Example excerpt",
+              type: "link",
+              domain: "example.com",
+            },
+          }),
+      } as Response);
+
+      const result = await api.getBookmark(123);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "https://api.raindrop.io/rest/v1/raindrop/123",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer test-token`,
+          },
+        },
+      );
+      expect(result).toEqual({
+        item: {
+          _id: 123,
+          title: "Example Bookmark",
+          link: "https://example.com",
+          tags: ["test"],
+          created: "2024-03-21T00:00:00Z",
+          lastUpdate: "2024-03-21T00:00:00Z",
+          excerpt: "Example excerpt",
+          type: "link",
+          domain: "example.com",
+        },
+      });
+    });
+
+    it("handles API errors for get operation", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        statusText: "Not Found",
+        json: () => Promise.resolve({ error: "Bookmark not found" }),
+      } as Response);
+
+      await expect(api.getBookmark(999)).rejects.toThrow("Raindrop API error: Not Found");
+    });
+  });
 });

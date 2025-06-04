@@ -1,7 +1,7 @@
 import { describe, expect, it, jest } from "@jest/globals";
 import { CallToolRequest } from "@modelcontextprotocol/sdk/types.js";
 import { RaindropAPI } from "../lib/raindrop-api.js";
-import { CreateBookmarkSchema, SearchBookmarksSchema } from "../types/index.js";
+import { CreateBookmarkSchema, GetBookmarkSchema, SearchBookmarksSchema } from "../types/index.js";
 
 // モックのfetch関数
 const mockFetch = jest.fn().mockImplementation(() =>
@@ -325,6 +325,109 @@ Created: ${new Date(item.created).toLocaleString()}
       });
 
       expect(result.content[0].text).toBe("No collections found.");
+    });
+  });
+
+  describe("get-bookmark", () => {
+    const handler = async (request: CallToolRequest) => {
+      const { name, arguments: args } = request.params;
+      if (name !== "get-bookmark") throw new Error("Invalid tool");
+
+      const { id } = GetBookmarkSchema.parse(args);
+      const bookmark = await api.getBookmark(id);
+      const item = bookmark.item;
+
+      const formattedBookmark = `
+ID: ${item._id}
+Title: ${item.title}
+URL: ${item.link}
+Tags: ${item.tags?.length ? item.tags.join(", ") : "No tags"}
+Type: ${item.type || "Unknown"}
+Domain: ${item.domain || "Unknown"}
+Created: ${new Date(item.created).toLocaleString()}
+Last Updated: ${new Date(item.lastUpdate).toLocaleString()}
+Collection: ${item.collection?.title || `ID ${item.collection?.$id}` || "None"}
+${item.excerpt ? `Excerpt: ${item.excerpt}` : ""}
+${item.note ? `Note: ${item.note}` : ""}
+${item.cover ? `Cover: ${item.cover}` : ""}`;
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Bookmark details:\n${formattedBookmark}`,
+          },
+        ],
+      };
+    };
+
+    const mockBookmark = {
+      item: {
+        _id: 123,
+        title: "Example Bookmark",
+        link: "https://example.com",
+        tags: ["test", "example"],
+        created: "2024-03-20T00:00:00.000Z",
+        lastUpdate: "2024-03-20T00:00:00.000Z",
+        excerpt: "This is an example bookmark",
+        type: "link",
+        domain: "example.com",
+        collection: {
+          $id: 1,
+          title: "Test Collection",
+        },
+      },
+    };
+
+    it("should get bookmark details by ID", async () => {
+      mockFetch.mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockBookmark),
+        }),
+      );
+
+      const result = await handler({
+        method: "tools/call",
+        params: {
+          name: "get-bookmark",
+          arguments: {
+            id: 123,
+          },
+        },
+      });
+
+      expect(result.content[0].text).toContain("Bookmark details:");
+      expect(result.content[0].text).toContain("Example Bookmark");
+      expect(result.content[0].text).toContain("https://example.com");
+      expect(result.content[0].text).toContain("test, example");
+      expect(result.content[0].text).toContain("Test Collection");
+    });
+
+    it("should handle validation errors for invalid ID", async () => {
+      await expect(
+        handler({
+          method: "tools/call",
+          params: {
+            name: "get-bookmark",
+            arguments: {
+              id: "invalid",
+            },
+          },
+        }),
+      ).rejects.toThrow();
+    });
+
+    it("should handle missing ID parameter", async () => {
+      await expect(
+        handler({
+          method: "tools/call",
+          params: {
+            name: "get-bookmark",
+            arguments: {},
+          },
+        }),
+      ).rejects.toThrow();
     });
   });
 });

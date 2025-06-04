@@ -12,6 +12,7 @@ An integration that allows LLMs to interact with Raindrop.io bookmarks using the
 - Create bookmarks
 - Search bookmarks
 - Filter by tags
+- Retrieve bookmark details
 
 ## Requirements
 
@@ -92,6 +93,12 @@ Searches through bookmarks.
 **Parameters:**
 - `query`: Search query (required)
 - `tags`: Array of tags to filter by (optional)
+
+### get-bookmark
+Retrieves detailed information about a specific bookmark.
+
+**Parameters:**
+- `id`: Bookmark ID (required)
 
 ## Development
 

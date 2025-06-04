@@ -9,7 +9,7 @@ import dotenv from "dotenv";
 import { z } from "zod";
 import { RaindropAPI } from "./lib/raindrop-api.js";
 import { tools } from "./lib/tools.js";
-import { CreateBookmarkSchema, SearchBookmarksSchema } from "./types/index.js";
+import { CreateBookmarkSchema, GetBookmarkSchema, SearchBookmarksSchema } from "./types/index.js";
 
 dotenv.config();
 
@@ -130,6 +130,36 @@ Created: ${new Date(item.created).toLocaleString()}
                 collections.items.length > 0
                   ? `Found ${collections.items.length} collections:\n${formattedCollections}`
                   : "No collections found.",
+            },
+          ],
+        };
+      }
+
+      if (name === "get-bookmark") {
+        const { id } = GetBookmarkSchema.parse(args);
+
+        const bookmark = await api.getBookmark(id);
+        const item = bookmark.item;
+
+        const formattedBookmark = `
+ID: ${item._id}
+Title: ${item.title}
+URL: ${item.link}
+Tags: ${item.tags?.length ? item.tags.join(", ") : "No tags"}
+Type: ${item.type || "Unknown"}
+Domain: ${item.domain || "Unknown"}
+Created: ${new Date(item.created).toLocaleString()}
+Last Updated: ${new Date(item.lastUpdate).toLocaleString()}
+Collection: ${item.collection?.title || `ID ${item.collection?.$id}` || "None"}
+${item.excerpt ? `Excerpt: ${item.excerpt}` : ""}
+${item.note ? `Note: ${item.note}` : ""}
+${item.cover ? `Cover: ${item.cover}` : ""}`;
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Bookmark details:\n${formattedBookmark}`,
             },
           ],
         };

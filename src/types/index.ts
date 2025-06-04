@@ -29,17 +29,39 @@ export const SearchBookmarksSchema = z.object({
   word: z.boolean().optional(),
 });
 
+export const GetBookmarkSchema = z.object({
+  id: z.number(),
+});
+
 // Zodスキーマから型を生成
 export type CreateBookmarkParams = z.infer<typeof CreateBookmarkSchema>;
 export type SearchBookmarksParams = z.infer<typeof SearchBookmarksSchema>;
+export type GetBookmarkParams = z.infer<typeof GetBookmarkSchema>;
 
 // APIレスポンスの型
 export interface RaindropItem {
+  _id: number;
   title: string;
   link: string;
   tags?: string[];
   created: string;
   lastUpdate: string;
+  excerpt?: string;
+  note?: string;
+  type?: string;
+  cover?: string;
+  collection?: {
+    $id: number;
+    title?: string;
+  };
+  domain?: string;
+  user?: {
+    $id: number;
+  };
+}
+
+export interface BookmarkResponse {
+  item: RaindropItem;
 }
 
 export interface Collection {
