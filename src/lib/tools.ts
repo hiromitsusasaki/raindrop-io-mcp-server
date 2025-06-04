@@ -87,4 +87,18 @@ export const tools: Tool[] = [
       properties: {},
     },
   },
+  {
+    name: "delete-bookmark",
+    description: "Delete a bookmark from Raindrop.io",
+    inputSchema: {
+      type: "object",
+      properties: {
+        id: {
+          type: "number",
+          description: "ID of the bookmark to delete",
+        },
+      },
+      required: ["id"],
+    },
+  },
 ];

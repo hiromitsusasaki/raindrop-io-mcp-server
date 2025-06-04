@@ -11,6 +11,7 @@ An integration that allows LLMs to interact with Raindrop.io bookmarks using the
 
 - Create bookmarks
 - Search bookmarks
+- Delete bookmarks
 - Filter by tags
 
 ## Requirements
@@ -92,6 +93,12 @@ Searches through bookmarks.
 **Parameters:**
 - `query`: Search query (required)
 - `tags`: Array of tags to filter by (optional)
+
+### delete-bookmark
+Deletes a bookmark by ID.
+
+**Parameters:**
+- `id`: Bookmark ID to delete (required)
 
 ## Development
 

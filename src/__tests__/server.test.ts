@@ -1,7 +1,7 @@
 import { describe, expect, it, jest } from "@jest/globals";
 import { CallToolRequest } from "@modelcontextprotocol/sdk/types.js";
 import { RaindropAPI } from "../lib/raindrop-api.js";
-import { CreateBookmarkSchema, SearchBookmarksSchema } from "../types/index.js";
+import { CreateBookmarkSchema, SearchBookmarksSchema, DeleteBookmarkSchema } from "../types/index.js";
 
 // モックのfetch関数
 const mockFetch = jest.fn().mockImplementation(() =>
@@ -325,6 +325,136 @@ Created: ${new Date(item.created).toLocaleString()}
       });
 
       expect(result.content[0].text).toBe("No collections found.");
+    });
+  });
+
+  describe("delete-bookmark", () => {
+    const handler = async (request: CallToolRequest) => {
+      const { name, arguments: args } = request.params;
+      if (name !== "delete-bookmark") throw new Error("Invalid tool");
+
+      const { id } = DeleteBookmarkSchema.parse(args);
+
+      try {
+        const result = await api.deleteBookmark(id);
+
+        if (result.result) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Bookmark with ID ${id} has been successfully deleted.`,
+              },
+            ],
+          };
+        } else {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Failed to delete bookmark with ID ${id}. The bookmark may not exist or you don't have permission to delete it.`,
+              },
+            ],
+          };
+        }
+      } catch (error) {
+        if (error instanceof Error && error.message.includes("404")) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Bookmark with ID ${id} not found. It may have already been deleted or the ID is incorrect.`,
+              },
+            ],
+          };
+        }
+        throw error;
+      }
+    };
+
+    it("should delete a bookmark successfully", async () => {
+      mockFetch.mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ result: true }),
+        }),
+      );
+
+      const result = await handler({
+        method: "tools/call",
+        params: {
+          name: "delete-bookmark",
+          arguments: {
+            id: 123,
+          },
+        },
+      });
+
+      expect(result).toEqual({
+        content: [
+          {
+            type: "text",
+            text: "Bookmark with ID 123 has been successfully deleted.",
+          },
+        ],
+      });
+    });
+
+    it("should handle deletion failure", async () => {
+      mockFetch.mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ result: false }),
+        }),
+      );
+
+      const result = await handler({
+        method: "tools/call",
+        params: {
+          name: "delete-bookmark",
+          arguments: {
+            id: 123,
+          },
+        },
+      });
+
+      expect(result.content[0].text).toContain("Failed to delete bookmark with ID 123");
+    });
+
+    it("should handle 404 errors", async () => {
+      mockFetch.mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: false,
+          statusText: "Not Found",
+          json: () => Promise.resolve({ error: "Not Found" }),
+        }),
+      );
+
+      const result = await handler({
+        method: "tools/call",
+        params: {
+          name: "delete-bookmark",
+          arguments: {
+            id: 999,
+          },
+        },
+      });
+
+      expect(result.content[0].text).toContain("Bookmark with ID 999 not found");
+    });
+
+    it("should handle validation errors", async () => {
+      await expect(
+        handler({
+          method: "tools/call",
+          params: {
+            name: "delete-bookmark",
+            arguments: {
+              id: "invalid-id",
+            },
+          },
+        }),
+      ).rejects.toThrow();
     });
   });
 });

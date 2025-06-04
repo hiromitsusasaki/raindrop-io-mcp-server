@@ -55,4 +55,8 @@ export class RaindropAPI {
   async listCollections(): Promise<CollectionsResponse> {
     return this.makeRequest<CollectionsResponse>("/collections");
   }
+
+  async deleteBookmark(id: number): Promise<{ result: boolean }> {
+    return this.makeRequest<{ result: boolean }>(`/raindrop/${id}`, "DELETE");
+  }
 }

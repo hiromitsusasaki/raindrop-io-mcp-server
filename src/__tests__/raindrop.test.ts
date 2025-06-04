@@ -150,4 +150,39 @@ describe("RaindropAPI", () => {
       });
     });
   });
+
+  describe("deleteBookmark", () => {
+    it("deletes a bookmark", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ result: true }),
+      } as Response);
+
+      const result = await api.deleteBookmark(123);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "https://api.raindrop.io/rest/v1/raindrop/123",
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer test-token`,
+          },
+        },
+      );
+      expect(result).toEqual({ result: true });
+    });
+
+    it("handles API errors", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        statusText: "Not Found",
+        json: () => Promise.resolve({ error: "Not Found" }),
+      } as Response);
+
+      await expect(api.deleteBookmark(999)).rejects.toThrow(
+        "Raindrop API error: Not Found",
+      );
+    });
+  });
 });

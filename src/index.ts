@@ -9,7 +9,7 @@ import dotenv from "dotenv";
 import { z } from "zod";
 import { RaindropAPI } from "./lib/raindrop-api.js";
 import { tools } from "./lib/tools.js";
-import { CreateBookmarkSchema, SearchBookmarksSchema } from "./types/index.js";
+import { CreateBookmarkSchema, SearchBookmarksSchema, DeleteBookmarkSchema } from "./types/index.js";
 
 dotenv.config();
 
@@ -133,6 +133,46 @@ Created: ${new Date(item.created).toLocaleString()}
             },
           ],
         };
+      }
+
+      if (name === "delete-bookmark") {
+        const { id } = DeleteBookmarkSchema.parse(args);
+
+        try {
+          const result = await api.deleteBookmark(id);
+
+          if (result.result) {
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Bookmark with ID ${id} has been successfully deleted.`,
+                },
+              ],
+            };
+          } else {
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Failed to delete bookmark with ID ${id}. The bookmark may not exist or you don't have permission to delete it.`,
+                },
+              ],
+            };
+          }
+        } catch (error) {
+          if (error instanceof Error && error.message.includes("404")) {
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Bookmark with ID ${id} not found. It may have already been deleted or the ID is incorrect.`,
+                },
+              ],
+            };
+          }
+          throw error;
+        }
       }
 
       throw new Error(`Unknown tool: ${name}`);
