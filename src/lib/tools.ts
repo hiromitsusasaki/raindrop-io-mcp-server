@@ -80,6 +80,33 @@ export const tools: Tool[] = [
     },
   },
   {
+    name: "update-bookmark",
+    description: "Update an existing bookmark in Raindrop.io",
+    inputSchema: {
+      type: "object",
+      properties: {
+        id: {
+          type: "number",
+          description: "Bookmark ID to update",
+        },
+        title: {
+          type: "string",
+          description: "New title for the bookmark (optional)",
+        },
+        tags: {
+          type: "array",
+          items: { type: "string" },
+          description: "New tags for the bookmark (optional)",
+        },
+        collection: {
+          type: "number",
+          description: "New collection ID to move to (optional)",
+        },
+      },
+      required: ["id"],
+    },
+  },
+  {
     name: "list-collections",
     description: "List all your Raindrop.io collections",
     inputSchema: {

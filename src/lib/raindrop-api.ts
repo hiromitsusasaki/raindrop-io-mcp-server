@@ -55,4 +55,16 @@ export class RaindropAPI {
   async listCollections(): Promise<CollectionsResponse> {
     return this.makeRequest<CollectionsResponse>("/collections");
   }
+
+  async updateBookmark(id: number, params: {
+    title?: string;
+    tags?: string[];
+    collection?: { $id: number };
+  }) {
+    return this.makeRequest<{ item: { _id: number } }>(
+      `/raindrop/${id}`,
+      "PUT",
+      params,
+    );
+  }
 }

@@ -109,6 +109,78 @@ describe("RaindropAPI", () => {
     });
   });
 
+  describe("updateBookmark", () => {
+    it("updates a bookmark", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ item: { _id: 123 } }),
+      } as Response);
+
+      const result = await api.updateBookmark(123, {
+        title: "Updated Title",
+        tags: ["updated", "test"],
+        collection: { $id: 456 },
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "https://api.raindrop.io/rest/v1/raindrop/123",
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer test-token`,
+          },
+          body: JSON.stringify({
+            title: "Updated Title",
+            tags: ["updated", "test"],
+            collection: { $id: 456 },
+          }),
+        },
+      );
+      expect(result).toEqual({ item: { _id: 123 } });
+    });
+
+    it("handles partial updates", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ item: { _id: 123 } }),
+      } as Response);
+
+      const result = await api.updateBookmark(123, {
+        title: "New Title Only",
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "https://api.raindrop.io/rest/v1/raindrop/123",
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer test-token`,
+          },
+          body: JSON.stringify({
+            title: "New Title Only",
+          }),
+        },
+      );
+      expect(result).toEqual({ item: { _id: 123 } });
+    });
+
+    it("handles update API errors", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        statusText: "Not found",
+        json: () => Promise.resolve({ error: "Not found" }),
+      } as Response);
+
+      await expect(
+        api.updateBookmark(999, {
+          title: "Non-existent bookmark",
+        }),
+      ).rejects.toThrow("Raindrop API error: Not found");
+    });
+  });
+
   describe("listCollections", () => {
     it("lists collections", async () => {
       mockFetch.mockResolvedValueOnce({

@@ -9,7 +9,7 @@ import dotenv from "dotenv";
 import { z } from "zod";
 import { RaindropAPI } from "./lib/raindrop-api.js";
 import { tools } from "./lib/tools.js";
-import { CreateBookmarkSchema, SearchBookmarksSchema } from "./types/index.js";
+import { CreateBookmarkSchema, SearchBookmarksSchema, UpdateBookmarkSchema } from "./types/index.js";
 
 dotenv.config();
 
@@ -102,6 +102,32 @@ Last Updated: ${new Date(item.lastUpdate).toLocaleString()}
                       results.items.length
                     } on page ${page ?? 0 + 1}):\n${formattedResults}`
                   : "No bookmarks found matching your search.",
+            },
+          ],
+        };
+      }
+
+      if (name === "update-bookmark") {
+        const { id, title, tags, collection } =
+          UpdateBookmarkSchema.parse(args);
+
+        const updateParams: {
+          title?: string;
+          tags?: string[];
+          collection?: { $id: number };
+        } = {};
+
+        if (title !== undefined) updateParams.title = title;
+        if (tags !== undefined) updateParams.tags = tags;
+        if (collection !== undefined) updateParams.collection = { $id: collection };
+
+        const result = await api.updateBookmark(id, updateParams);
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Bookmark ${result.item._id} updated successfully`,
             },
           ],
         };

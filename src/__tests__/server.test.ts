@@ -1,7 +1,7 @@
-import { describe, expect, it, jest } from "@jest/globals";
+import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { CallToolRequest } from "@modelcontextprotocol/sdk/types.js";
 import { RaindropAPI } from "../lib/raindrop-api.js";
-import { CreateBookmarkSchema, SearchBookmarksSchema } from "../types/index.js";
+import { CreateBookmarkSchema, SearchBookmarksSchema, UpdateBookmarkSchema } from "../types/index.js";
 
 // モックのfetch関数
 const mockFetch = jest.fn().mockImplementation(() =>
@@ -244,6 +244,178 @@ Last Updated: ${new Date(item.lastUpdate).toLocaleString()}
         expect.stringContaining("tags=example%2Ctest"),
         expect.any(Object),
       );
+    });
+  });
+
+  describe("update-bookmark", () => {
+    const handler = async (request: CallToolRequest) => {
+      const { name, arguments: args } = request.params;
+      if (name !== "update-bookmark") throw new Error("Invalid tool");
+
+      const { id, title, tags, collection } = UpdateBookmarkSchema.parse(args);
+
+      const updateParams: {
+        title?: string;
+        tags?: string[];
+        collection?: { $id: number };
+      } = {};
+
+      if (title !== undefined) updateParams.title = title;
+      if (tags !== undefined) updateParams.tags = tags;
+      if (collection !== undefined) updateParams.collection = { $id: collection };
+
+      const result = await api.updateBookmark(id, updateParams);
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Bookmark ${result.item._id} updated successfully`,
+          },
+        ],
+      };
+    };
+
+    it("should update bookmark title", async () => {
+      mockFetch.mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ item: { _id: 123 } }),
+        }),
+      );
+
+      const result = await handler({
+        method: "tools/call",
+        params: {
+          name: "update-bookmark",
+          arguments: {
+            id: 123,
+            title: "New Title",
+          },
+        },
+      });
+
+      expect(result).toEqual({
+        content: [
+          {
+            type: "text",
+            text: "Bookmark 123 updated successfully",
+          },
+        ],
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "https://api.raindrop.io/rest/v1/raindrop/123",
+        expect.objectContaining({
+          method: "PUT",
+          body: JSON.stringify({ title: "New Title" }),
+        }),
+      );
+    });
+
+    it("should update bookmark tags", async () => {
+      mockFetch.mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ item: { _id: 123 } }),
+        }),
+      );
+
+      await handler({
+        method: "tools/call",
+        params: {
+          name: "update-bookmark",
+          arguments: {
+            id: 123,
+            tags: ["new", "tags"],
+          },
+        },
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "https://api.raindrop.io/rest/v1/raindrop/123",
+        expect.objectContaining({
+          method: "PUT",
+          body: JSON.stringify({ tags: ["new", "tags"] }),
+        }),
+      );
+    });
+
+    it("should move bookmark to different collection", async () => {
+      mockFetch.mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ item: { _id: 123 } }),
+        }),
+      );
+
+      await handler({
+        method: "tools/call",
+        params: {
+          name: "update-bookmark",
+          arguments: {
+            id: 123,
+            collection: 456,
+          },
+        },
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "https://api.raindrop.io/rest/v1/raindrop/123",
+        expect.objectContaining({
+          method: "PUT",
+          body: JSON.stringify({ collection: { $id: 456 } }),
+        }),
+      );
+    });
+
+    it("should update multiple fields at once", async () => {
+      mockFetch.mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ item: { _id: 123 } }),
+        }),
+      );
+
+      await handler({
+        method: "tools/call",
+        params: {
+          name: "update-bookmark",
+          arguments: {
+            id: 123,
+            title: "Updated Title",
+            tags: ["updated", "test"],
+            collection: 789,
+          },
+        },
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "https://api.raindrop.io/rest/v1/raindrop/123",
+        expect.objectContaining({
+          method: "PUT",
+          body: JSON.stringify({
+            title: "Updated Title",
+            tags: ["updated", "test"],
+            collection: { $id: 789 },
+          }),
+        }),
+      );
+    });
+
+    it("should handle validation errors", async () => {
+      await expect(
+        handler({
+          method: "tools/call",
+          params: {
+            name: "update-bookmark",
+            arguments: {
+              // Missing required id field
+              title: "New Title",
+            },
+          },
+        }),
+      ).rejects.toThrow("Required");
     });
   });
 
