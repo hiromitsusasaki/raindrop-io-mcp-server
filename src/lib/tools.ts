@@ -87,4 +87,110 @@ export const tools: Tool[] = [
       properties: {},
     },
   },
+  {
+    name: "create-collection",
+    description: "Create a new collection in Raindrop.io",
+    inputSchema: {
+      type: "object",
+      properties: {
+        title: {
+          type: "string",
+          description: "Title for the collection",
+        },
+        description: {
+          type: "string",
+          description: "Description for the collection (optional)",
+        },
+        parent: {
+          type: "number",
+          description: "Parent collection ID for nested collections (optional)",
+        },
+        view: {
+          type: "string",
+          enum: ["list", "simple", "grid", "masonry"],
+          description: "View type for the collection (optional)",
+        },
+        sort: {
+          type: "number",
+          minimum: 0,
+          maximum: 4,
+          description: "Sort order (0-4, optional)",
+        },
+        public: {
+          type: "boolean",
+          description: "Whether the collection is public (optional)",
+        },
+      },
+      required: ["title"],
+    },
+  },
+  {
+    name: "update-collection",
+    description: "Update an existing collection in Raindrop.io",
+    inputSchema: {
+      type: "object",
+      properties: {
+        collectionId: {
+          type: "number",
+          description: "ID of the collection to update",
+        },
+        title: {
+          type: "string",
+          description: "New title for the collection (optional)",
+        },
+        description: {
+          type: "string",
+          description: "New description for the collection (optional)",
+        },
+        parent: {
+          type: "number",
+          description: "New parent collection ID (optional)",
+        },
+        view: {
+          type: "string",
+          enum: ["list", "simple", "grid", "masonry"],
+          description: "New view type for the collection (optional)",
+        },
+        sort: {
+          type: "number",
+          minimum: 0,
+          maximum: 4,
+          description: "New sort order (0-4, optional)",
+        },
+        public: {
+          type: "boolean",
+          description: "Whether the collection is public (optional)",
+        },
+      },
+      required: ["collectionId"],
+    },
+  },
+  {
+    name: "delete-collection",
+    description: "Delete a collection from Raindrop.io",
+    inputSchema: {
+      type: "object",
+      properties: {
+        collectionId: {
+          type: "number",
+          description: "ID of the collection to delete",
+        },
+      },
+      required: ["collectionId"],
+    },
+  },
+  {
+    name: "get-collection",
+    description: "Get detailed information about a specific collection",
+    inputSchema: {
+      type: "object",
+      properties: {
+        collectionId: {
+          type: "number",
+          description: "ID of the collection to retrieve",
+        },
+      },
+      required: ["collectionId"],
+    },
+  },
 ];

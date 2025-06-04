@@ -1,4 +1,4 @@
-import { CollectionsResponse, SearchResponse } from "../types/index.js";
+import { Collection, CollectionsResponse, SearchResponse } from "../types/index.js";
 
 const RAINDROP_API_BASE = "https://api.raindrop.io/rest/v1";
 
@@ -54,5 +54,51 @@ export class RaindropAPI {
 
   async listCollections(): Promise<CollectionsResponse> {
     return this.makeRequest<CollectionsResponse>("/collections");
+  }
+
+  async createCollection(params: {
+    title: string;
+    description?: string;
+    parent?: { $id: number };
+    view?: string;
+    sort?: number;
+    public?: boolean;
+  }) {
+    return this.makeRequest<{ item: { _id: number; title: string } }>(
+      "/collection",
+      "POST",
+      params,
+    );
+  }
+
+  async updateCollection(
+    collectionId: number,
+    params: {
+      title?: string;
+      description?: string;
+      parent?: { $id: number };
+      view?: string;
+      sort?: number;
+      public?: boolean;
+    },
+  ) {
+    return this.makeRequest<{ item: { _id: number; title: string } }>(
+      `/collection/${collectionId}`,
+      "PUT",
+      params,
+    );
+  }
+
+  async deleteCollection(collectionId: number) {
+    return this.makeRequest<{ result: boolean }>(
+      `/collection/${collectionId}`,
+      "DELETE",
+    );
+  }
+
+  async getCollection(collectionId: number) {
+    return this.makeRequest<{ item: Collection }>(
+      `/collection/${collectionId}`,
+    );
   }
 }

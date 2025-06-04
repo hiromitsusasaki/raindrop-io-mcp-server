@@ -9,7 +9,14 @@ import dotenv from "dotenv";
 import { z } from "zod";
 import { RaindropAPI } from "./lib/raindrop-api.js";
 import { tools } from "./lib/tools.js";
-import { CreateBookmarkSchema, SearchBookmarksSchema } from "./types/index.js";
+import {
+  CreateBookmarkSchema,
+  SearchBookmarksSchema,
+  CreateCollectionSchema,
+  UpdateCollectionSchema,
+  DeleteCollectionSchema,
+  GetCollectionSchema,
+} from "./types/index.js";
 
 dotenv.config();
 
@@ -130,6 +137,107 @@ Created: ${new Date(item.created).toLocaleString()}
                 collections.items.length > 0
                   ? `Found ${collections.items.length} collections:\n${formattedCollections}`
                   : "No collections found.",
+            },
+          ],
+        };
+      }
+
+      if (name === "create-collection") {
+        const { title, description, parent, view, sort, public: isPublic } =
+          CreateCollectionSchema.parse(args);
+
+        const collectionData: any = { title };
+        if (description) collectionData.description = description;
+        if (parent) collectionData.parent = { $id: parent };
+        if (view) collectionData.view = view;
+        if (sort !== undefined) collectionData.sort = sort;
+        if (isPublic !== undefined) collectionData.public = isPublic;
+
+        const result = await api.createCollection(collectionData);
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Collection created successfully: "${result.item.title}" (ID: ${result.item._id})`,
+            },
+          ],
+        };
+      }
+
+      if (name === "update-collection") {
+        const {
+          collectionId,
+          title,
+          description,
+          parent,
+          view,
+          sort,
+          public: isPublic,
+        } = UpdateCollectionSchema.parse(args);
+
+        const updateData: any = {};
+        if (title) updateData.title = title;
+        if (description !== undefined) updateData.description = description;
+        if (parent !== undefined) updateData.parent = { $id: parent };
+        if (view) updateData.view = view;
+        if (sort !== undefined) updateData.sort = sort;
+        if (isPublic !== undefined) updateData.public = isPublic;
+
+        const result = await api.updateCollection(collectionId, updateData);
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Collection updated successfully: "${result.item.title}" (ID: ${result.item._id})`,
+            },
+          ],
+        };
+      }
+
+      if (name === "delete-collection") {
+        const { collectionId } = DeleteCollectionSchema.parse(args);
+
+        const result = await api.deleteCollection(collectionId);
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: result.result
+                ? `Collection deleted successfully (ID: ${collectionId})`
+                : `Failed to delete collection (ID: ${collectionId})`,
+            },
+          ],
+        };
+      }
+
+      if (name === "get-collection") {
+        const { collectionId } = GetCollectionSchema.parse(args);
+
+        const result = await api.getCollection(collectionId);
+        const collection = result.item;
+
+        const formattedCollection = `
+Name: ${collection.title}
+ID: ${collection._id}
+Description: ${collection.description || "No description"}
+Count: ${collection.count} bookmarks
+View: ${collection.view || "Not set"}
+Sort: ${collection.sort !== undefined ? collection.sort : "Not set"}
+Public: ${collection.public !== undefined ? collection.public : "Not set"}
+Parent: ${collection.parent?._id || "None"}
+Created: ${new Date(collection.created).toLocaleString()}
+Last Update: ${collection.lastUpdate ? new Date(collection.lastUpdate).toLocaleString() : "Never"}
+Access Level: ${collection.access?.level || "Not available"}
+`;
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: formattedCollection,
             },
           ],
         };
