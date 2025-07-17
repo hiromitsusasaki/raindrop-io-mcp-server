@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/mseep-audited.png)](https://mseep.ai/app/hiromitsusasaki-raindrop-io-mcp-server)
+
 # Raindrop.io MCP Server
 [![smithery badge](https://smithery.ai/badge/@hiromitsusasaki/raindrop-io-mcp-server)](https://smithery.ai/server/@hiromitsusasaki/raindrop-io-mcp-server)
 
