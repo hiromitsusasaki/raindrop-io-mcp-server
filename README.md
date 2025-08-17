@@ -1,4 +1,5 @@
 # Raindrop.io MCP Server
+[![Trust Score](https://archestra.ai/mcp-catalog/api/badge/quality/hiromitsusasaki/raindrop-io-mcp-server)](https://archestra.ai/mcp-catalog/hiromitsusasaki__raindrop-io-mcp-server)
 [![smithery badge](https://smithery.ai/badge/@hiromitsusasaki/raindrop-io-mcp-server)](https://smithery.ai/server/@hiromitsusasaki/raindrop-io-mcp-server)
 
 An integration that allows LLMs to interact with Raindrop.io bookmarks using the Model Context Protocol (MCP).
