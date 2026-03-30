@@ -13,6 +13,10 @@ An integration that allows LLMs to interact with Raindrop.io bookmarks using the
 - Search bookmarks
 - Filter by tags
 
+## Hosted deployment
+
+A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/hiromitsusasaki-raindrop-io-mcp-server).
+
 ## Requirements
 
 - Node.js 16 or higher
